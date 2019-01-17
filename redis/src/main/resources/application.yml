@@ -1,0 +1,22 @@
+server:
+    port: 8080
+spring:
+    redis:
+        cluster:
+            nodes:
+            - 10.125.37.202:17601
+            - 10.125.37.202:17602
+            - 10.125.37.202:17603
+            - 10.125.37.202:17604
+            - 10.125.37.202:17605
+            - 10.125.37.202:17606
+        password: 9LT7c!M6js1EASuq
+        timeout: 500ms
+        jedis:
+            pool:
+                max-wait: 5s
+                max-idle: 50
+                min-idle: 5
+                max-active: 50
+
+

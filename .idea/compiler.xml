@@ -7,8 +7,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="api-version" />
+        <module name="cors" />
         <module name="global-exception" />
         <module name="http-message-converters" />
+        <module name="redis" />
       </profile>
     </annotationProcessing>
   </component>

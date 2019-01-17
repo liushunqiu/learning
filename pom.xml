@@ -12,6 +12,8 @@
         <module>api-version</module>
         <module>http-message-converters</module>
         <module>global-exception</module>
+        <module>cors</module>
+        <module>redis</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
