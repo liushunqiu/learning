@@ -14,6 +14,7 @@
         <module>global-exception</module>
         <module>cors</module>
         <module>redis</module>
+        <module>rocket-mq</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

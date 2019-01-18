@@ -11,6 +11,7 @@
         <module name="global-exception" />
         <module name="http-message-converters" />
         <module name="redis" />
+        <module name="rocket-mq" />
       </profile>
     </annotationProcessing>
   </component>

@@ -1,0 +1,4 @@
+rocketmq:
+    name-server: 10.125.37.202:9876
+    producer:
+        group: my-group1
