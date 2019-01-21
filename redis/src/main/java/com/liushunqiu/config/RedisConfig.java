@@ -18,7 +18,7 @@ public class RedisConfig {
 	@Autowired
 	private RedisProperties redisProperties;
 
-	@Bean
+	@Bean(destroyMethod = "close")
 	public JedisCluster getJedisCluster() {
 		Set<HostAndPort> nodes = new HashSet<>();
 		redisProperties.getCluster().getNodes().forEach(node->{
