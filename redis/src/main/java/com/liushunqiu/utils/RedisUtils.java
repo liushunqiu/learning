@@ -46,29 +46,17 @@ public class RedisUtils {
 	}
 
 	public Map<String, String> getBatchKey(List<String> keys) {
-		Map<Jedis, List<String>> nodeKeyListMap = new HashMap<>();
-		for (String key : keys) {
-			//计算slot
-			int slot = JedisClusterCRC16.getSlot(key);
-			Jedis jedis = jedisCluster.getConnectionFromSlot(slot);
-			if (nodeKeyListMap.containsKey(jedis)) {
-				nodeKeyListMap.get(jedis).add(key);
-			} else {
-				nodeKeyListMap.put(jedis, Arrays.asList(key));
-			}
-		}
+		Map<Jedis, List<String>> nodeKeyListMap = jedisKeys(keys);
 		//结果集
 		Map<String, String> resultMap = new HashMap<>();
 		CompletionService<Map<String,String>> batchService = new ExecutorCompletionService(executorService);
 		nodeKeyListMap.forEach((k,v)->{
-			batchService.submit(new BatchTask(k,v));
+			batchService.submit(new BatchGetTask(k,v));
 		});
 		nodeKeyListMap.forEach((k,v)->{
 			try {
 				resultMap.putAll(batchService.take().get());
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
+			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 			}
 		});
@@ -90,13 +78,45 @@ public class RedisUtils {
 		return RELEASE_SUCCESS.equals(result);
 	}
 
-	class BatchTask implements Callable<Map<String,String>>{
+	private Map<Jedis, List<String>> jedisKeys(List<String> keys){
+		Map<Jedis, List<String>> nodeKeyListMap = new HashMap<>();
+		for (String key : keys) {
+			//计算slot
+			int slot = JedisClusterCRC16.getSlot(key);
+			Jedis jedis = jedisCluster.getConnectionFromSlot(slot);
+			if (nodeKeyListMap.containsKey(jedis)) {
+				nodeKeyListMap.get(jedis).add(key);
+			} else {
+				nodeKeyListMap.put(jedis, Arrays.asList(key));
+			}
+		}
+		return nodeKeyListMap;
+	}
+
+	public long delBatchKey(List<String> keys){
+		Map<Jedis, List<String>> nodeKeyListMap = jedisKeys(keys);
+		CompletionService<Long> batchService = new ExecutorCompletionService(executorService);
+		nodeKeyListMap.forEach((k,v)->{
+			batchService.submit(new BatchDelTask(k,v));
+		});
+		Long result = 0L;
+		for (int i=0;i<nodeKeyListMap.size();i++){
+			try {
+				result += batchService.take().get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	class BatchGetTask implements Callable<Map<String,String>>{
 
 		private Jedis jedis;
 
 		private List<String> keys;
 
-		private BatchTask(Jedis jedis, List<String> keys) {
+		private BatchGetTask(Jedis jedis, List<String> keys) {
 			this.jedis = jedis;
 			this.keys = keys;
 		}
@@ -105,11 +125,37 @@ public class RedisUtils {
 		public Map<String, String> call() throws Exception {
 			Map<String, String> resultMap = new HashMap<>();
 			String[] keyArray = keys.toArray(new String[]{});
-			List<String> nodeValueList = jedis.mget(keyArray);
-			for (int i = 0; i < keys.size(); i++) {
-				resultMap.put(keys.get(i),nodeValueList.get(i));
+			try {
+				List<String> nodeValueList = jedis.mget(keyArray);
+				for (int i = 0; i < keys.size(); i++) {
+					resultMap.put(keys.get(i),nodeValueList.get(i));
+				}
+			}finally {
+				jedis.close();
 			}
 			return resultMap;
+		}
+	}
+
+	class BatchDelTask implements Callable<Long>{
+
+		private Jedis jedis;
+
+		private List<String> keys;
+
+		private BatchDelTask(Jedis jedis, List<String> keys) {
+			this.jedis = jedis;
+			this.keys = keys;
+		}
+
+		@Override
+		public Long call() throws Exception {
+			String[] keyArray = keys.toArray(new String[]{});
+			try {
+				return jedis.del(keyArray);
+			}finally {
+				jedis.close();
+			}
 		}
 	}
 
