@@ -8,10 +8,12 @@
         <outputRelativeToContentRoot value="true" />
         <module name="api-version" />
         <module name="cors" />
+        <module name="email" />
         <module name="global-exception" />
         <module name="http-message-converters" />
         <module name="redis" />
         <module name="rocket-mq" />
+        <module name="web-socket" />
       </profile>
     </annotationProcessing>
   </component>

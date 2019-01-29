@@ -1,0 +1,8 @@
+spring:
+    mail:
+        host: smtp.163.com
+        username: 17665140425@163.com
+        #这里是客户端授权码
+        password: qq123456
+        default-encoding: UTF-8
+        from: 17665140425@163.com
